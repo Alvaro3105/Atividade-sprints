@@ -16,13 +16,14 @@ class EventoController extends Controller
         return view('eventos.index', compact('eventos'));
     }
 
-
     public function show($id)
     {
         $evento = Evento::findOrFail($id);
 
+        // Filtrar perguntas públicas, carregar usuários e manter paginação
         $perguntas = Pergunta::where('evento_id', $id)
-            ->with('user') 
+            ->where('is_public', true) // Apenas perguntas públicas
+            ->with('user') // Carregamento ansioso
             ->latest()
             ->paginate(10);
 
