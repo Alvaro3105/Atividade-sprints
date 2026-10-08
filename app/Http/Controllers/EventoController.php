@@ -16,11 +16,15 @@ class EventoController extends Controller
         return view('eventos.index', compact('eventos'));
     }
 
+
     public function show($id)
     {
-        $evento = Evento::find($id);
+        $evento = Evento::findOrFail($id);
 
-        $perguntas = Pergunta::all();
+        // Filtrar perguntas pelo evento atual, ordenar e paginar
+        $perguntas = Pergunta::where('evento_id', $id)
+            ->latest()
+            ->paginate(10);
 
         return view('eventos.show', compact('evento', 'perguntas'));
     }
