@@ -21,8 +21,8 @@ class EventoController extends Controller
     {
         $evento = Evento::findOrFail($id);
 
-        // Filtrar perguntas pelo evento atual, ordenar e paginar
         $perguntas = Pergunta::where('evento_id', $id)
+            ->with('user') 
             ->latest()
             ->paginate(10);
 
@@ -53,4 +53,5 @@ class EventoController extends Controller
         $evento = $request->user()->eventos()->create($request->validated());
         return redirect()->route('eventos.show', $evento->id);
     }
+
 }
