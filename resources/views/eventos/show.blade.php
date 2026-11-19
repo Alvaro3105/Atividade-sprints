@@ -42,7 +42,33 @@
 
         @forelse($perguntas as $pergunta)
             <!-- Card estilizado com Tailwind -->
-            <div class="mb-4 px-5 py-4 bg-gray-100 rounded-2xl rounded-tl-sm shadow-md max-w-xl">
+            <div class="mb-4 px-5 py-4 bg-gray-100 rounded-2xl rounded-tl-sm shadow-md max-w-xl flex gap-4 items-start">
+                <!-- Ticket #012: Upvote + contagem de votos -->
+                <div class="flex flex-col items-center min-w-[3rem]">
+                    @auth
+                        <form action="{{ route('perguntas.votar', $pergunta) }}" method="POST">
+                            @csrf
+                            @if($pergunta->votado_pelo_usuario)
+                                <button type="submit" title="Você já votou. Clique para remover o voto."
+                                        class="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 font-bold">
+                                    ▲
+                                </button>
+                            @else
+                                <button type="submit" title="Votar nesta pergunta"
+                                        class="bg-white text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-50 font-bold">
+                                    ▲
+                                </button>
+                            @endif
+                        </form>
+                    @else
+                        <a href="{{ route('login.create') }}" title="Faça login para votar"
+                           class="bg-white text-gray-400 border border-gray-300 px-3 py-1 rounded-md hover:text-blue-600">▲</a>
+                    @endauth
+                    <span class="text-gray-800 font-bold mt-1">{{ $pergunta->votos_count }}</span>
+                    <span class="text-xs text-gray-500">{{ $pergunta->votos_count == 1 ? 'voto' : 'votos' }}</span>
+                </div>
+
+                <div class="flex-1">
                 <p class="text-gray-800 text-lg">{{ $pergunta->texto }}</p>
                 <div class="text-sm text-gray-600 mt-2">
                     <span>Autor: {{ $pergunta->user->name ?? 'Anônimo' }}</span>
@@ -58,6 +84,7 @@
                         <x-danger-button>Excluir</x-danger-button>
                     </form>
                 @endcan
+                </div>
             </div>
         @empty
             <div class="text-center text-gray-500">

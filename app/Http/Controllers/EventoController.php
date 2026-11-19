@@ -24,7 +24,12 @@ class EventoController extends Controller
         $perguntas = Pergunta::where('evento_id', $id)
             ->where('is_public', true) // Apenas perguntas públicas
             ->with(['user', 'evento']) // Carregamento ansioso (evento usado pela policy)
-            ->latest()
+            // Ticket #012: ranking pelas mais votadas
+            ->withCount('votos')
+            // Marca se o usuário logado já votou (evita N+1 na view)
+            ->withExists(['votos as votado_pelo_usuario' => fn ($q) => $q->whereKey(auth()->id())])
+            ->orderByDesc('votos_count')
+            ->latest() // desempate: mais recentes primeiro
             ->paginate(10);
 
         return view('eventos.show', compact('evento', 'perguntas'));
