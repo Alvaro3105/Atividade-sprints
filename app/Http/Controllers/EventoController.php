@@ -23,7 +23,7 @@ class EventoController extends Controller
         // Filtrar perguntas públicas, carregar usuários e manter paginação
         $perguntas = Pergunta::where('evento_id', $id)
             ->where('is_public', true) // Apenas perguntas públicas
-            ->with('user') // Carregamento ansioso
+            ->with(['user', 'evento']) // Carregamento ansioso (evento usado pela policy)
             ->latest()
             ->paginate(10);
 
@@ -44,6 +44,18 @@ class EventoController extends Controller
 
         return redirect()->route('eventos.show', $evento->id)
             ->with('sucesso', 'Sua pergunta foi enviada com sucesso!');
+    }
+
+    public function destroyPergunta(Pergunta $pergunta)
+    {
+        // Ticket 3: só o autor da pergunta ou o dono do evento podem excluir
+        $this->authorize('delete', $pergunta);
+
+        $eventoId = $pergunta->evento_id;
+        $pergunta->delete();
+
+        return redirect()->route('eventos.show', $eventoId)
+            ->with('sucesso', 'Pergunta excluída com sucesso!');
     }
 
     public function create(){

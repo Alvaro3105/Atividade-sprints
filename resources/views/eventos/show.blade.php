@@ -48,6 +48,16 @@
                     <span>Autor: {{ $pergunta->user->name ?? 'Anônimo' }}</span>
                     <span class="ml-4">{{ $pergunta->created_at->format('d/m/Y H:i') }}</span>
                 </div>
+
+                <!-- Ticket 4: só aparece para o autor da pergunta ou o dono do evento -->
+                @can('delete', $pergunta)
+                    <form action="{{ route('perguntas.destroy', $pergunta) }}" method="POST" class="mt-3"
+                          onsubmit="return confirm('Tem certeza que deseja excluir esta pergunta?');">
+                        @csrf
+                        @method('DELETE')
+                        <x-danger-button>Excluir</x-danger-button>
+                    </form>
+                @endcan
             </div>
         @empty
             <div class="text-center text-gray-500">
