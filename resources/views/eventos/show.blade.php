@@ -37,7 +37,15 @@
     <div class="col-md-7">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="fw-bold m-0">📋 Perguntas do Evento</h4>
-            <span class="text-secondary small">Total no Banco: {{ $evento->perguntas->count() }}</span>
+            <div class="flex items-center gap-3">
+                @can('moderate', $evento)
+                    <a href="{{ route('eventos.moderacoes', $evento) }}"
+                       class="bg-yellow-500 text-gray-900 text-sm px-3 py-1 rounded-md hover:bg-yellow-400">
+                        🛡️ Fila de Moderação
+                    </a>
+                @endcan
+                <span class="text-secondary small">Total no Banco: {{ $evento->perguntas->count() }}</span>
+            </div>
         </div>
 
         @forelse($perguntas as $pergunta)
@@ -84,6 +92,26 @@
                         <x-danger-button>Excluir</x-danger-button>
                     </form>
                 @endcan
+
+                <!-- Sprint 07: denunciar pergunta -->
+                @auth
+                    @php $comErro = old('pergunta_denunciada') == $pergunta->id; @endphp
+                    <details class="mt-3" @if($comErro) open @endif>
+                        <summary class="text-sm text-gray-500 cursor-pointer hover:text-red-600">🚩 Denunciar</summary>
+                        <form action="{{ route('perguntas.moderar', $pergunta) }}" method="POST" class="mt-2">
+                            @csrf
+                            <input type="hidden" name="pergunta_denunciada" value="{{ $pergunta->id }}">
+                            <textarea name="motivo" rows="2" placeholder="Descreva o motivo da denúncia..."
+                                      class="w-full p-2 border rounded-md text-gray-800 @if($comErro) @error('motivo') border-red-500 @enderror @endif">{{ $comErro ? old('motivo') : '' }}</textarea>
+                            @if($comErro)
+                                @error('motivo')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            @endif
+                            <x-danger-button class="mt-2">Enviar denúncia</x-danger-button>
+                        </form>
+                    </details>
+                @endauth
                 </div>
             </div>
         @empty
