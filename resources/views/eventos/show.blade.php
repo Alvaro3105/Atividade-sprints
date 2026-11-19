@@ -42,7 +42,7 @@
 
         @forelse($perguntas as $pergunta)
             <!-- Card estilizado com Tailwind -->
-            <div class="mb-4 p-4 bg-gray-100 rounded-md shadow-md">
+            <div class="mb-4 px-5 py-4 bg-gray-100 rounded-2xl rounded-tl-sm shadow-md max-w-xl">
                 <p class="text-gray-800 text-lg">{{ $pergunta->texto }}</p>
                 <div class="text-sm text-gray-600 mt-2">
                     <span>Autor: {{ $pergunta->user->name ?? 'Anônimo' }}</span>
