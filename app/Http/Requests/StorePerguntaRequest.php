@@ -20,11 +20,35 @@ class StorePerguntaRequest extends FormRequest
      * - texto: obrigatório, string, mínimo de 10 caracteres, máximo de 255.
      * - evento_id: obrigatório, deve existir na tabela eventos.
      */
+    /**
+     * O evento_id vem da URL (/eventos/{id}/perguntas), e não do formulário.
+     * Injetamos o valor antes da validação para que a regra "exists" funcione.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'evento_id' => $this->route('id'),
+        ]);
+    }
+
     public function rules(): array
     {
         return [
             'texto' => 'required|string|min:10|max:255',
             'evento_id' => 'required|exists:eventos,id',
+        ];
+    }
+
+    /**
+     * Mensagens de erro em português exibidas pela diretiva @error.
+     */
+    public function messages(): array
+    {
+        return [
+            'texto.required' => 'A pergunta não pode ficar em branco.',
+            'texto.min'      => 'A pergunta deve ter pelo menos :min caracteres.',
+            'texto.max'      => 'A pergunta deve ter no máximo :max caracteres.',
+            'evento_id.exists' => 'Evento não encontrado.',
         ];
     }
 }

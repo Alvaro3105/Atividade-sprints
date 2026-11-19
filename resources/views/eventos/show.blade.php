@@ -37,16 +37,81 @@
     <div class="col-md-7">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h4 class="fw-bold m-0">📋 Perguntas do Evento</h4>
-            <span class="text-secondary small">Total no Banco: {{ $evento->perguntas->count() }}</span>
+            <div class="flex items-center gap-3">
+                @can('moderate', $evento)
+                    <a href="{{ route('eventos.moderacoes', $evento) }}"
+                       class="bg-yellow-500 text-gray-900 text-sm px-3 py-1 rounded-md hover:bg-yellow-400">
+                        🛡️ Fila de Moderação
+                    </a>
+                @endcan
+                <span class="text-secondary small">Total no Banco: {{ $evento->perguntas->count() }}</span>
+            </div>
         </div>
 
         @forelse($perguntas as $pergunta)
             <!-- Card estilizado com Tailwind -->
-            <div class="mb-4 p-4 bg-gray-100 rounded-md shadow-md">
+            <div class="mb-4 px-5 py-4 bg-gray-100 rounded-2xl rounded-tl-sm shadow-md max-w-xl flex gap-4 items-start">
+                <!-- Ticket #012: Upvote + contagem de votos -->
+                <div class="flex flex-col items-center min-w-[3rem]">
+                    @auth
+                        <form action="{{ route('perguntas.votar', $pergunta) }}" method="POST">
+                            @csrf
+                            @if($pergunta->votado_pelo_usuario)
+                                <button type="submit" title="Você já votou. Clique para remover o voto."
+                                        class="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 font-bold">
+                                    ▲
+                                </button>
+                            @else
+                                <button type="submit" title="Votar nesta pergunta"
+                                        class="bg-white text-blue-600 border border-blue-600 px-3 py-1 rounded-md hover:bg-blue-50 font-bold">
+                                    ▲
+                                </button>
+                            @endif
+                        </form>
+                    @else
+                        <a href="{{ route('login.create') }}" title="Faça login para votar"
+                           class="bg-white text-gray-400 border border-gray-300 px-3 py-1 rounded-md hover:text-blue-600">▲</a>
+                    @endauth
+                    <span class="text-gray-800 font-bold mt-1">{{ $pergunta->votos_count }}</span>
+                    <span class="text-xs text-gray-500">{{ $pergunta->votos_count == 1 ? 'voto' : 'votos' }}</span>
+                </div>
+
+                <div class="flex-1">
                 <p class="text-gray-800 text-lg">{{ $pergunta->texto }}</p>
                 <div class="text-sm text-gray-600 mt-2">
                     <span>Autor: {{ $pergunta->user->name ?? 'Anônimo' }}</span>
                     <span class="ml-4">{{ $pergunta->created_at->format('d/m/Y H:i') }}</span>
+                </div>
+
+                <!-- Ticket 4: só aparece para o autor da pergunta ou o dono do evento -->
+                @can('delete', $pergunta)
+                    <form action="{{ route('perguntas.destroy', $pergunta) }}" method="POST" class="mt-3"
+                          onsubmit="return confirm('Tem certeza que deseja excluir esta pergunta?');">
+                        @csrf
+                        @method('DELETE')
+                        <x-danger-button>Excluir</x-danger-button>
+                    </form>
+                @endcan
+
+                <!-- Sprint 07: denunciar pergunta -->
+                @auth
+                    @php $comErro = old('pergunta_denunciada') == $pergunta->id; @endphp
+                    <details class="mt-3" @if($comErro) open @endif>
+                        <summary class="text-sm text-gray-500 cursor-pointer hover:text-red-600">🚩 Denunciar</summary>
+                        <form action="{{ route('perguntas.moderar', $pergunta) }}" method="POST" class="mt-2">
+                            @csrf
+                            <input type="hidden" name="pergunta_denunciada" value="{{ $pergunta->id }}">
+                            <textarea name="motivo" rows="2" placeholder="Descreva o motivo da denúncia..."
+                                      class="w-full p-2 border rounded-md text-gray-800 @if($comErro) @error('motivo') border-red-500 @enderror @endif">{{ $comErro ? old('motivo') : '' }}</textarea>
+                            @if($comErro)
+                                @error('motivo')
+                                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                                @enderror
+                            @endif
+                            <x-danger-button class="mt-2">Enviar denúncia</x-danger-button>
+                        </form>
+                    </details>
+                @endauth
                 </div>
             </div>
         @empty

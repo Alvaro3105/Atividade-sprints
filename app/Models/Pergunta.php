@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Pergunta extends Model
 {
@@ -20,5 +22,21 @@ class Pergunta extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Ticket #010: usuários que votaram (upvote) nesta pergunta.
+     */
+    public function votos(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)->withTimestamps();
+    }
+
+    /**
+     * Ticket #014: denúncias feitas sobre esta pergunta.
+     */
+    public function moderacoes(): HasMany
+    {
+        return $this->hasMany(Moderacao::class);
     }
 }
